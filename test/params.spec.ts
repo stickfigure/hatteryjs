@@ -27,4 +27,13 @@ describe('Parameter testing', () => {
 
 		expect(result.query).to.equal("foo=bar&foo=baz");
 	});
+
+	it('removes params if value is null', async () => {
+		const result = await SNOOP
+				.param('foo', 'bar')
+				.param('foo', null)
+				.fetch().json();
+
+		expect(result.query).to.equal("");
+	});
 });
