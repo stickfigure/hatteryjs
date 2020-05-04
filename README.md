@@ -2,8 +2,8 @@
 
 Hattery (mad, of course) is a library for making HTTP requests. It provides a simple fluent interface 
 based around immutable objects. This javascript version is adapted from the initial 
-[Java version](https://github.com/stickfigure/hattery).
- 
+[Java version](https://github.com/stickfigure/hattery). 
+
 ```typescript
 // Requests are immutable, start with the base object
 import {HTTP} from "hattery";
@@ -12,24 +12,24 @@ import {HTTP} from "hattery";
 const thing1 = await HTTP
 	.url("http://example.com/1")
 	.param("foo", "bar")
-	.fetch();
+	.fetch().json();
 
 // A POST request as application/x-www-form-urlencoded 
-Thing thing2 = HTTP
+const thing2 = await HTTP
 	.url("http://example.com/2")
 	.POST()
 	.param("foo", "bar")
-	.fetch().as(Thing.class);
+	.fetch().json();
 
 // A POST request with a JSON body
-Thing thing3 = HTTP
+const thing3 = await HTTP
 	.url("http://example.com/3")
 	.POST()
-	.body(objectThatWillBeSerializedWithJackson)
-	.fetch().as(Thing.class);
+	.body({"foo":"bar"})
+	.fetch().json();
 
 // Some extra stuff you can set
-List<Thing> things4 = HTTP
+const things4 = await HTTP
 	.transport(new MyCustomTransport())
 	.url("http://example.com")
 	.path("/4")
@@ -39,50 +39,14 @@ List<Thing> things4 = HTTP
 	.param("foo", "bar")
 	.timeout(1000)
 	.retries(3)
-	.mapper(new MySpecialObjectMapper())
-	.preflightAndThen(req -> req.header("X-Auth-Signature", sign(req)))
-	.fetch().as(new TypeReference<List<Thing>>(){});
+	.preflightAndThen(req => req.header("X-Auth-Signature", sign(req)))
+	.fetch().json();
 ```
 
-Install with maven:
+Install from npm:
 
-```xml
-	<dependency>
-		<groupId>com.voodoodyne.hattery</groupId>
-		<artifactId>hattery</artifactId>
-		<version>look up the latest version number</version>
-	</dependency>
-```
+TODO
 
-Hattery requires Java 8.
-
-Some philosphy:
-
- * `HttpRequest`s are immutable and thread-safe. You can pass them around anywhere. 
- * Checked exceptions are a horrible misfeature of Java. Only runtime exceptions are thrown; all `IOException`s become `IORException`s
- 
-A common pattern is to build a partial request and extend it when you need it; don't rebuild all the state every time. A contrived, self-contained example:
-
-```java
-public class FooBarService {
-	private final HttpRequest base;
-	
-	public Service(final String authorization) {
-		this.base = HTTP
-			.url("http://example.com/api")
-			.header("Authorization", authorization);
-	}
-	
-	public Foo foo() {
-		return base.path("/foo").fetch().as(Foo.class);
-	}
-
-	public Bar bar(final String color) {
-		return base.path("/bar").param("color", color).fetch().as(Bar.class);
-	}
-} 
-```
- 
 Some extra features:
 
  * `path()` calls append to the url; `url()` calls replace the whole url.
@@ -90,6 +54,5 @@ Some extra features:
  * Unspecified `Content-Type` is inferred:
    * If there is a `body()`, `application/json` is assumed. Any `param()`s will become query parameters.
    * If `POST()` and no `body()`, parameters will be submitted as `application/x-www-form-urlencoded`
-     * ...unless a `BinaryAttachment` parameter is included, in which case the content becomes `multipart/form-data`.
-     * ...or unless params are submitted as `queryParam()`, which forces them onto the query string.
+     * ...unless params are submitted as `queryParam()`, which forces them onto the query string.
  
