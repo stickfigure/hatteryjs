@@ -14,7 +14,7 @@ class FetchHttpResponse implements HttpResponse {
 	constructor(request: HttpRequest) {
 		this.response = fetch(request.toUrl(), {
 			method: request.getMethod(),
-
+			headers: request.getHeaders(),
 		});
 	}
 
