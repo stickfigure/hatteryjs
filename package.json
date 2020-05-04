@@ -1,0 +1,35 @@
+{
+  "name": "hattery",
+  "version": "0.0.1",
+  "description": "Functional/immutable http interface",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha -r ts-node/register test/**/*.spec.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/stickfigure/hatteryjs.git"
+  },
+  "keywords": [
+    "http",
+    "fetch"
+  ],
+  "author": "Jeff Schnitzer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stickfigure/hatteryjs/issues"
+  },
+  "homepage": "https://github.com/stickfigure/hatteryjs#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.11",
+    "@types/isomorphic-fetch": "0.0.35",
+    "@types/mocha": "^7.0.2",
+    "chai": "^4.2.0",
+    "isomorphic-fetch": "^2.2.1",
+    "mocha": "^7.1.2",
+    "ts-node": "^8.9.1",
+    "typescript": "^3.8.3"
+  }
+}
