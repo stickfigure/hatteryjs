@@ -3,6 +3,7 @@ import {HttpResponse, HttpTransport} from "./HttpResponse";
 
 type Params = Record<string, string[]>;
 type Headers = Record<string, string>;
+type Preflight = (request: HttpRequest) => HttpRequest;
 
 export class HttpRequest {
 	constructor(
@@ -11,6 +12,7 @@ export class HttpRequest {
 			private _url: string,
 			private _headers: Headers,
 			private _params: Params,
+			private _preflight: Preflight,
 	) {
 	}
 
@@ -19,7 +21,7 @@ export class HttpRequest {
 	}
 
 	transport(transport: HttpTransport): HttpRequest {
-		return new HttpRequest(transport, this._method, this._url, this._headers, this._params);
+		return new HttpRequest(transport, this._method, this._url, this._headers, this._params, this._preflight);
 	}
 
 	getMethod(): string {
@@ -30,7 +32,7 @@ export class HttpRequest {
 	 * Return a new request whose method has been changed.
 	 */
 	method(method: string): HttpRequest {
-		return new HttpRequest(this._transport, method, this._url, this._headers, this._params);
+		return new HttpRequest(this._transport, method, this._url, this._headers, this._params, this._preflight);
 	}
 
 	/** Shortcut for method('GET') */
@@ -72,7 +74,7 @@ export class HttpRequest {
 	 * Return a request whose url (and paths) have been replaced with the specified value
 	 */
 	url(url: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, url, this._headers, this._params);
+		return new HttpRequest(this._transport, this._method, url, this._headers, this._params, this._preflight);
 	}
 
 	/**
@@ -80,7 +82,7 @@ export class HttpRequest {
 	 * @param path may have an optional leading '/'. Slash separators will be added between path segments either way.
 	 */
 	path(path: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params);
+		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params, this._preflight);
 	}
 
 	getHeaders(): Headers {
@@ -91,7 +93,7 @@ export class HttpRequest {
 	 * Return a request with an extra header added to the list that will be sent to the server.
 	 */
 	header(key: string, value: string) {
-		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params);
+		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight);
 	}
 
 	/**
@@ -129,14 +131,37 @@ export class HttpRequest {
 	 * provide a string[] value. Providing a null value will clear the query key.
 	 */
 	param(key: string, value: string | string[] | null) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value));
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight);
+	}
+
+	/**
+	 * Return a request that has a preflight interceptor (replacing any preflight function that already exists).
+	 * Before fetching, the interceptor will be allowed to inspect the request and return a new one. To reset
+	 * the preflight, pass in the identity function (req => req).
+	 */
+	preflight(func: Preflight) {
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, func);
+	}
+
+	/**
+	 * Return a request that chains a new preflight interceptor to the current interceptor. If no preflight interceptor
+	 * has already been set, this is the same as preflight().
+	 */
+	preflightAndThen(func: Preflight) {
+		const combined = (req: HttpRequest) => {
+			const before = this._preflight(req);
+			return func(before);
+		}
+
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, combined);
 	}
 
 	/**
 	 * Execute this request.
 	 */
 	fetch(): HttpResponse {
-		return this._transport.fetch(this);
+		const preflighted = this._preflight(this);
+		return this._transport.fetch(preflighted);
 	}
 
 	/** @return the fully formed URL, including any query string parameters, encoded properly */
