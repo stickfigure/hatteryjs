@@ -1,6 +1,5 @@
 import {expect} from 'chai';
 import 'mocha';
-import {HTTP} from "../lib";
 import {SNOOP} from "./fixtures";
 
 describe('Path testing', () => {

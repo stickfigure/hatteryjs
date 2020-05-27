@@ -1,6 +1,6 @@
+import fetch from "isomorphic-fetch";
 import {HttpRequest} from "./HttpRequest";
 import {HttpResponse, HttpTransport} from "./HttpResponse";
-import fetch from "isomorphic-fetch";
 
 export class FetchTransport implements HttpTransport {
 	fetch(request: HttpRequest): HttpResponse {
