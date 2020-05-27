@@ -41,4 +41,13 @@ describe('Method testing', () => {
 
 		expect(result).to.equal('');
 	});
+
+	it('uses arbitrary method', async () => {
+		const result = await SNOOP
+				.method('PATCH')
+				.fetch().json();
+
+		expect(result.method).to.equal('PATCH');
+	});
+
 });
