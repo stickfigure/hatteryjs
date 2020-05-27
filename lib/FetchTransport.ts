@@ -34,11 +34,22 @@ class FetchHttpResponse implements HttpResponse {
 	/** @throws an exception if the status code is 400+ */
 	async json(): Promise<any> {
 		await this.succeed();
-		return this.response.then(r => r.json());
+		return this.jsonRaw();
 	}
 
 	/** Doesn't care what the status code is */
 	async jsonRaw(): Promise<any> {
 		return this.response.then(r => r.json());
+	}
+
+	/** @throws an exception if the status code is 400+ */
+	async text(): Promise<string> {
+		await this.succeed();
+		return this.textRaw();
+	}
+
+	/** Doesn't care what the status code is */
+	async textRaw(): Promise<any> {
+		return this.response.then(r => r.text());
 	}
 }

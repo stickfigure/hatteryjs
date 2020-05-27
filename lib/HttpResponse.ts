@@ -7,4 +7,5 @@ export interface HttpTransport {
 export interface HttpResponse {
 	succeed(): Promise<HttpResponse>;
 	json(): Promise<any>;
+	text(): Promise<string>;
 }
