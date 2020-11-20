@@ -1,6 +1,6 @@
 import fetch from "isomorphic-fetch";
 import {HttpRequest} from "./HttpRequest";
-import {HttpResponse, HttpTransport} from "./HttpResponse";
+import {HttpError, HttpResponse, HttpTransport} from "./HttpResponse";
 
 export class FetchTransport implements HttpTransport {
 	async fetch(request: HttpRequest): Promise<HttpResponse> {
@@ -23,11 +23,11 @@ class FetchHttpResponse implements HttpResponse {
 	constructor(private response: Promise<Response>) {
 	}
 
-	async succeed(): Promise<HttpResponse> {
+	private async succeed(): Promise<HttpResponse> {
 		const r = await this.response;
 
 		if (r.status >= 400)
-			throw new Error("TODO better message. Error code " + r.status);
+			throw new HttpError(`Error ${r.status}: ${r.statusText}`, this);
 
 		return this;
 	}
@@ -36,24 +36,22 @@ class FetchHttpResponse implements HttpResponse {
 		return (await this.response).status;
 	}
 
-	/** @throws an exception if the status code is 400+ */
-	async json(): Promise<any> {
-		await this.succeed();
-		return this.jsonRaw();
+	async success(): Promise<number> {
+		return (await this.succeed()).status();
 	}
 
-	/** Doesn't care what the status code is */
+	async json(): Promise<any> {
+		return (await this.succeed()).jsonRaw();
+	}
+
 	async jsonRaw(): Promise<any> {
 		return (await this.response).json();
 	}
 
-	/** @throws an exception if the status code is 400+ */
 	async text(): Promise<string> {
-		await this.succeed();
-		return this.textRaw();
+		return (await this.succeed()).textRaw();
 	}
 
-	/** Doesn't care what the status code is */
 	async textRaw(): Promise<any> {
 		return (await this.response).text();
 	}

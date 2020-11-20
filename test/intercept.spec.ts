@@ -46,7 +46,7 @@ describe('Intercept functions', () => {
 						ordering.push(8);
 					}
 				})
-				.fetch().succeed();
+				.fetch().success();
 
 		expect(ordering).to.deep.equal([1, 2, 3, 4, 5, 6, 7, 8]);
 	});

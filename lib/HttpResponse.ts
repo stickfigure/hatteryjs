@@ -5,11 +5,22 @@ export interface HttpTransport {
 }
 
 export interface HttpResponse {
+	/** @return the status code, whether or not there was success */
 	status(): Promise<number>;
-	succeed(): Promise<HttpResponse>;
+
+	/** @return the status code if <400, otherwise throws HttpError */
+	success(): Promise<number>;
+
+	/** @return the json if success, throws HttpError otherwise */
 	json(): Promise<any>;
+
+	/** @return the json body whether or not there was success */
 	jsonRaw(): Promise<any>;
+
+	/** @return the text if success, throws HttpError otherwise */
 	text(): Promise<string>;
+
+	/** @return the text body whether or not there was success */
 	textRaw(): Promise<string>;
 }
 
@@ -21,8 +32,8 @@ export class HttpResponseWrapper implements HttpResponse {
 		return (await this.promise).status();
 	}
 
-	async succeed(): Promise<HttpResponse> {
-		return (await this.promise).succeed();
+	async success(): Promise<number> {
+		return (await this.promise).success();
 	}
 
 	async json(): Promise<any> {
@@ -39,5 +50,11 @@ export class HttpResponseWrapper implements HttpResponse {
 
 	async textRaw(): Promise<string> {
 		return (await this.promise).textRaw();
+	}
+}
+
+export class HttpError extends Error {
+	constructor(message: string, private response: HttpResponse) {
+		super(message);
 	}
 }

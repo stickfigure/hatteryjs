@@ -11,3 +11,6 @@ export const HTTP = new HttpRequest(
 		resp => resp,
 		(req, proceed) => proceed(req),
 		null);
+
+export {HttpRequest};
+export {HttpResponse, HttpError, HttpTransport} from "./HttpResponse";
