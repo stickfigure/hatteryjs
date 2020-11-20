@@ -1,9 +1,10 @@
 import {Base64} from 'js-base64';
-import {HttpResponse, HttpTransport} from "./HttpResponse";
+import {HttpResponse, HttpResponseWrapper, HttpTransport} from "./HttpResponse";
 
 type Params = Record<string, string[]>;
 type Headers = Record<string, string>;
 type Preflight = (request: HttpRequest) => HttpRequest;
+type Postflight = (response: Promise<HttpResponse>) => Promise<HttpResponse>;
 
 export class HttpRequest {
 	constructor(
@@ -13,6 +14,7 @@ export class HttpRequest {
 			private _headers: Headers,
 			private _params: Params,
 			private _preflight: Preflight,
+			private _postflight: Postflight,
 			private _body: unknown,
 	) {
 	}
@@ -22,7 +24,7 @@ export class HttpRequest {
 	}
 
 	transport(transport: HttpTransport): HttpRequest {
-		return new HttpRequest(transport, this._method, this._url, this._headers, this._params, this._preflight, this._body);
+		return new HttpRequest(transport, this._method, this._url, this._headers, this._params, this._preflight, this._postflight, this._body);
 	}
 
 	getMethod(): string {
@@ -33,7 +35,7 @@ export class HttpRequest {
 	 * Return a new request whose method has been changed.
 	 */
 	method(method: string): HttpRequest {
-		return new HttpRequest(this._transport, method, this._url, this._headers, this._params, this._preflight, this._body);
+		return new HttpRequest(this._transport, method, this._url, this._headers, this._params, this._preflight, this._postflight, this._body);
 	}
 
 	/** Shortcut for method('GET') */
@@ -75,7 +77,7 @@ export class HttpRequest {
 	 * Return a request whose url (and paths) have been replaced with the specified value
 	 */
 	url(url: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, url, this._headers, this._params, this._preflight, this._body);
+		return new HttpRequest(this._transport, this._method, url, this._headers, this._params, this._preflight, this._postflight, this._body);
 	}
 
 	/**
@@ -83,7 +85,7 @@ export class HttpRequest {
 	 * @param path may have an optional leading '/'. Slash separators will be added between path segments either way.
 	 */
 	path(path: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params, this._preflight, this._body);
+		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params, this._preflight, this._postflight, this._body);
 	}
 
 	getHeaders(): Headers {
@@ -94,7 +96,7 @@ export class HttpRequest {
 	 * Return a request with an extra header added to the list that will be sent to the server.
 	 */
 	header(key: string, value: string) {
-		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight, this._body);
+		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight, this._postflight, this._body);
 	}
 
 	/**
@@ -132,7 +134,7 @@ export class HttpRequest {
 	 * provide a string[] value. Providing a null value will clear the query key.
 	 */
 	param(key: string, value: string | string[] | null) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight, this._body);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight, this._postflight, this._body);
 	}
 
 	/**
@@ -141,7 +143,7 @@ export class HttpRequest {
 	 * the preflight, pass in the identity function (req => req).
 	 */
 	preflight(func: Preflight) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, func, this._body);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, func, this._postflight, this._body);
 	}
 
 	/**
@@ -149,19 +151,41 @@ export class HttpRequest {
 	 * has already been set, this is the same as preflight().
 	 */
 	preflightAndThen(func: Preflight) {
-		const combined = (req: HttpRequest) => {
+		const combined: Preflight = (req: HttpRequest) => {
 			const before = this._preflight(req);
 			return func(before);
 		}
 
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, combined, this._body);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, combined, this._postflight, this._body);
+	}
+
+	/**
+	 * Return a response that has a postflight interceptor (replacing any postflight function that already exists).
+	 * The interceptor will be allowed to inspect the response and return a new one. To reset the postflight, pass
+	 * in the identity function (response => response).
+	 */
+	postflight(func: Postflight) {
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, func, this._body);
+	}
+
+	/**
+	 * Return a response that chains a new postflight interceptor to the current interceptor. If no postflight interceptor
+	 * has already been set, this is the same as postflight().
+	 */
+	postflightAndThen(func: Postflight) {
+		const combined: Postflight = (resp: Promise<HttpResponse>) => {
+			const before = this._postflight(resp);
+			return func(before);
+		}
+
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, combined, this._body);
 	}
 
 	/**
 	 * Return a request that will submit the object as JSON body.
 	 */
 	body(value: unknown) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, value);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, this._postflight, value);
 	}
 
 	/** */
@@ -174,7 +198,8 @@ export class HttpRequest {
 	 */
 	fetch(): HttpResponse {
 		const preflighted = this._preflight(this);
-		return this._transport.fetch(preflighted);
+		const response = this._transport.fetch(preflighted);
+		return new HttpResponseWrapper(this._postflight(response));
 	}
 
 	/** @return the fully formed URL, including any query string parameters, encoded properly */

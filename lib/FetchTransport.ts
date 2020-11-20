@@ -3,15 +3,7 @@ import {HttpRequest} from "./HttpRequest";
 import {HttpResponse, HttpTransport} from "./HttpResponse";
 
 export class FetchTransport implements HttpTransport {
-	fetch(request: HttpRequest): HttpResponse {
-		return new FetchHttpResponse(request);
-	}
-}
-
-class FetchHttpResponse implements HttpResponse {
-	response: Promise<Response>;
-
-	constructor(request: HttpRequest) {
+	async fetch(request: HttpRequest): Promise<HttpResponse> {
 		const init: RequestInit = {
 			method: request.getMethod(),
 			headers: request.getHeaders(),
@@ -21,7 +13,14 @@ class FetchHttpResponse implements HttpResponse {
 			init.body = JSON.stringify(request.getBody());
 		}
 
-		this.response = fetch(request.toUrl(), init);
+		const response = fetch(request.toUrl(), init);
+
+		return new FetchHttpResponse(response);
+	}
+}
+
+class FetchHttpResponse implements HttpResponse {
+	constructor(private response: Promise<Response>) {
 	}
 
 	async succeed(): Promise<HttpResponse> {
@@ -34,7 +33,7 @@ class FetchHttpResponse implements HttpResponse {
 	}
 
 	async status(): Promise<number> {
-		return this.response.then(r => r.status);
+		return (await this.response).status;
 	}
 
 	/** @throws an exception if the status code is 400+ */
@@ -45,7 +44,7 @@ class FetchHttpResponse implements HttpResponse {
 
 	/** Doesn't care what the status code is */
 	async jsonRaw(): Promise<any> {
-		return this.response.then(r => r.json());
+		return (await this.response).json();
 	}
 
 	/** @throws an exception if the status code is 400+ */
@@ -56,6 +55,6 @@ class FetchHttpResponse implements HttpResponse {
 
 	/** Doesn't care what the status code is */
 	async textRaw(): Promise<any> {
-		return this.response.then(r => r.text());
+		return (await this.response).text();
 	}
 }
