@@ -54,7 +54,7 @@ export class HttpResponseWrapper implements HttpResponse {
 }
 
 export class HttpError extends Error {
-	constructor(message: string, private response: HttpResponse) {
+	constructor(message: string, public response: HttpResponse) {
 		super(message);
 	}
 }
