@@ -1,9 +1,9 @@
 {
   "name": "hattery",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Functional/immutable http interface",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register test/**/*.spec.ts"
