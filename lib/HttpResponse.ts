@@ -29,27 +29,27 @@ export class HttpResponseWrapper implements HttpResponse {
 	}
 
 	async status(): Promise<number> {
-		return (await this.promise).status();
+		return this.promise.then(r => r.status());
 	}
 
 	async success(): Promise<number> {
-		return (await this.promise).success();
+		return this.promise.then(r => r.success());
 	}
 
 	async json(): Promise<any> {
-		return (await this.promise).json();
+		return this.promise.then(r => r.json());
 	}
 
 	async jsonRaw(): Promise<any> {
-		return (await this.promise).jsonRaw();
+		return this.promise.then(r => r.jsonRaw());
 	}
 
 	async text(): Promise<string> {
-		return (await this.promise).text();
+		return this.promise.then(r => r.text());
 	}
 
 	async textRaw(): Promise<string> {
-		return (await this.promise).textRaw();
+		return this.promise.then(r => r.textRaw());
 	}
 }
 

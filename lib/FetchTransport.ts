@@ -32,27 +32,27 @@ class FetchHttpResponse implements HttpResponse {
 		return this;
 	}
 
-	async status(): Promise<number> {
-		return (await this.response).status;
+	status(): Promise<number> {
+		return this.response.then(r => r.status);
 	}
 
-	async success(): Promise<number> {
-		return (await this.succeed()).status();
+	success(): Promise<number> {
+		return this.succeed().then(r => r.status());
 	}
 
-	async json(): Promise<any> {
-		return (await this.succeed()).jsonRaw();
+	json(): Promise<any> {
+		return this.succeed().then(r => r.jsonRaw());
 	}
 
-	async jsonRaw(): Promise<any> {
-		return (await this.response).json();
+	jsonRaw(): Promise<any> {
+		return this.response.then(r => r.json());
 	}
 
-	async text(): Promise<string> {
-		return (await this.succeed()).textRaw();
+	text(): Promise<string> {
+		return this.succeed().then(r => r.textRaw());
 	}
 
-	async textRaw(): Promise<any> {
-		return (await this.response).text();
+	textRaw(): Promise<any> {
+		return this.response.then(r => r.text());
 	}
 }
