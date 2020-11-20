@@ -13,6 +13,7 @@ export class HttpRequest {
 			private _headers: Headers,
 			private _params: Params,
 			private _preflight: Preflight,
+			private _body: unknown,
 	) {
 	}
 
@@ -21,7 +22,7 @@ export class HttpRequest {
 	}
 
 	transport(transport: HttpTransport): HttpRequest {
-		return new HttpRequest(transport, this._method, this._url, this._headers, this._params, this._preflight);
+		return new HttpRequest(transport, this._method, this._url, this._headers, this._params, this._preflight, this._body);
 	}
 
 	getMethod(): string {
@@ -32,7 +33,7 @@ export class HttpRequest {
 	 * Return a new request whose method has been changed.
 	 */
 	method(method: string): HttpRequest {
-		return new HttpRequest(this._transport, method, this._url, this._headers, this._params, this._preflight);
+		return new HttpRequest(this._transport, method, this._url, this._headers, this._params, this._preflight, this._body);
 	}
 
 	/** Shortcut for method('GET') */
@@ -74,7 +75,7 @@ export class HttpRequest {
 	 * Return a request whose url (and paths) have been replaced with the specified value
 	 */
 	url(url: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, url, this._headers, this._params, this._preflight);
+		return new HttpRequest(this._transport, this._method, url, this._headers, this._params, this._preflight, this._body);
 	}
 
 	/**
@@ -82,7 +83,7 @@ export class HttpRequest {
 	 * @param path may have an optional leading '/'. Slash separators will be added between path segments either way.
 	 */
 	path(path: string): HttpRequest {
-		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params, this._preflight);
+		return new HttpRequest(this._transport, this._method, concatPath(this._url, path), this._headers, this._params, this._preflight, this._body);
 	}
 
 	getHeaders(): Headers {
@@ -93,7 +94,7 @@ export class HttpRequest {
 	 * Return a request with an extra header added to the list that will be sent to the server.
 	 */
 	header(key: string, value: string) {
-		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight);
+		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight, this._body);
 	}
 
 	/**
@@ -131,7 +132,7 @@ export class HttpRequest {
 	 * provide a string[] value. Providing a null value will clear the query key.
 	 */
 	param(key: string, value: string | string[] | null) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight, this._body);
 	}
 
 	/**
@@ -140,7 +141,7 @@ export class HttpRequest {
 	 * the preflight, pass in the identity function (req => req).
 	 */
 	preflight(func: Preflight) {
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, func);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, func, this._body);
 	}
 
 	/**
@@ -153,7 +154,19 @@ export class HttpRequest {
 			return func(before);
 		}
 
-		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, combined);
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, combined, this._body);
+	}
+
+	/**
+	 * Return a request that will submit the object as JSON body.
+	 */
+	body(value: unknown) {
+		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, value);
+	}
+
+	/** */
+	getBody(): unknown {
+		return this._body;
 	}
 
 	/**

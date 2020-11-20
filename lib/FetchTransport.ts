@@ -12,10 +12,16 @@ class FetchHttpResponse implements HttpResponse {
 	response: Promise<Response>;
 
 	constructor(request: HttpRequest) {
-		this.response = fetch(request.toUrl(), {
+		const init: RequestInit = {
 			method: request.getMethod(),
 			headers: request.getHeaders(),
-		});
+		};
+
+		if (request.getBody() !== null) {
+			init.body = JSON.stringify(request.getBody());
+		}
+
+		this.response = fetch(request.toUrl(), init);
 	}
 
 	async succeed(): Promise<HttpResponse> {
