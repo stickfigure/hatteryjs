@@ -20,6 +20,17 @@ describe('Parameter testing', () => {
 		expect(result.query).to.equal("foo=rab");
 	});
 
+	describe('#params()', async () => {
+		it('replaces parameters', async () => {
+			const result = await SNOOP
+					.param('foo', 'bar')
+					.params({foo: 'rab', foz: 'baz'})
+					.fetch().json();
+
+			expect(result.query).to.equal("foo=rab&foz=baz");
+		});
+	})
+
 	it('accepts repeating parameters as array', async () => {
 		const result = await SNOOP
 				.param('foo', ['bar', 'baz'])

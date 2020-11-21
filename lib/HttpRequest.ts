@@ -98,21 +98,21 @@ export class HttpRequest {
 	/**
 	 * Return a request with an extra header added to the list that will be sent to the server.
 	 */
-	header(key: string, value: string) {
+	header(key: string, value: string): HttpRequest {
 		return new HttpRequest(this._transport, this._method, this._url, concatHeader(this._headers, key, value), this._params, this._preflight, this._postflight, this._interceptor, this._body);
 	}
 
 	/**
 	 * Shortcut for header('Content-Type', value)
 	 */
-	contentType(value: string) {
+	contentType(value: string): HttpRequest {
 		return this.header('Content-Type', value);
 	}
 
 	/**
 	 * Return a request with a basic auth header added
 	 */
-	basicAuth(username: string, password: string) {
+	basicAuth(username: string, password: string): HttpRequest {
 		const basic = username + ':' + password;
 
 		// Seems like we are going to have problems with nonascii chars?
@@ -136,8 +136,22 @@ export class HttpRequest {
 	 * Calling this method repeatedly with the same key will replace the value. To specify repeated parameter values,
 	 * provide a string[] value. Providing a null value will clear the query key.
 	 */
-	param(key: string, value: string | string[] | null) {
+	param(key: string, value: string | string[] | null): HttpRequest {
 		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight, this._postflight, this._interceptor, this._body);
+	}
+
+	/**
+	 * Return a request which combines these parameters with the existing set. Replaces any keys specified, although
+	 * it does not replace *all* parameters. It is a shorthand for calling param() with each key/value.
+	 * @param values a set of key/values to replace in our set
+	 */
+	params(values: Record<string, string | string[] | null>): HttpRequest {
+		let here: HttpRequest = this;
+		for (const key of Object.keys(values)) {
+			here = here.param(key, values[key]);
+		}
+
+		return here;
 	}
 
 	/**
@@ -153,7 +167,7 @@ export class HttpRequest {
 	 * Return a request that chains a new preflight interceptor to the current interceptor. If no preflight interceptor
 	 * has already been set, this is the same as preflight().
 	 */
-	preflightAndThen(func: Preflight) {
+	preflightAndThen(func: Preflight): HttpRequest {
 		const combined: Preflight = (req: HttpRequest) => {
 			const before = this._preflight(req);
 			return func(before);
@@ -167,7 +181,7 @@ export class HttpRequest {
 	 * The interceptor will be allowed to inspect the response and return a new one. To reset the postflight, pass
 	 * in the identity function (response => response).
 	 */
-	postflight(func: Postflight) {
+	postflight(func: Postflight): HttpRequest {
 		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, func, this._interceptor, this._body);
 	}
 
@@ -175,7 +189,7 @@ export class HttpRequest {
 	 * Return a response that chains a new postflight interceptor to the current interceptor. If no postflight interceptor
 	 * has already been set, this is the same as postflight().
 	 */
-	postflightAndThen(func: Postflight) {
+	postflightAndThen(func: Postflight): HttpRequest {
 		const combined: Postflight = (resp: Promise<HttpResponse>) => {
 			const before = this._postflight(resp);
 			return func(before);
@@ -191,7 +205,7 @@ export class HttpRequest {
 	 *
 	 * Interceptors are fired after preflights and before postflights.
 	 */
-	intercept(func: Interceptor) {
+	intercept(func: Interceptor): HttpRequest {
 		const combined: Interceptor = (request: HttpRequest, proceed: Processor) => {
 			return func(request, nextRequest => this._interceptor(nextRequest, proceed));
 		}
@@ -202,7 +216,7 @@ export class HttpRequest {
 	/**
 	 * Return a request that will submit the object as JSON body.
 	 */
-	body(value: unknown) {
+	body(value: unknown): HttpRequest {
 		return new HttpRequest(this._transport, this._method, this._url, this._headers, this._params, this._preflight, this._postflight, this._interceptor, value);
 	}
 
