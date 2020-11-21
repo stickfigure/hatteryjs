@@ -221,10 +221,24 @@ export class HttpRequest {
 	}
 
 	/**
+	 * Shorthand for fetch().success()
+	 */
+	success(): Promise<number> {
+		return this.fetch().success();
+	}
+
+	/**
 	 * Shorthand for fetch().json()
 	 */
 	json(): Promise<any> {
 		return this.fetch().json();
+	}
+
+	/**
+	 * Shorthand for fetch().text()
+	 */
+	text(): Promise<string> {
+		return this.fetch().text();
 	}
 
 	/** @return the fully formed URL, including any query string parameters, encoded properly */
