@@ -52,7 +52,15 @@ class FetchHttpResponse implements HttpResponse {
 		return this.succeed().then(r => r.textRaw());
 	}
 
-	textRaw(): Promise<any> {
+	textRaw(): Promise<string> {
 		return this.response.then(r => r.text());
+	}
+
+	blob(): Promise<Blob> {
+		return this.succeed().then(r => r.blobRaw());
+	}
+
+	blobRaw(): Promise<Blob> {
+		return this.response.then(r => r.blob());
 	}
 }

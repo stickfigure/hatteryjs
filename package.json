@@ -1,6 +1,6 @@
 {
   "name": "hattery",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Functional/immutable http interface",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",

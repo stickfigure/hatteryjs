@@ -22,6 +22,12 @@ export interface HttpResponse {
 
 	/** @return the text body whether or not there was success */
 	textRaw(): Promise<string>;
+
+	/** @return the blob if success, throws HttpError otherwise */
+	blob(): Promise<Blob>;
+
+	/** @return the blob body whether or not there was success */
+	blobRaw(): Promise<Blob>;
 }
 
 export class HttpResponseWrapper implements HttpResponse {
@@ -50,6 +56,14 @@ export class HttpResponseWrapper implements HttpResponse {
 
 	async textRaw(): Promise<string> {
 		return this.promise.then(r => r.textRaw());
+	}
+
+	async blob(): Promise<Blob> {
+		return this.promise.then(r => r.blob());
+	}
+
+	async blobRaw(): Promise<Blob> {
+		return this.promise.then(r => r.blobRaw());
 	}
 }
 
