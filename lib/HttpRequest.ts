@@ -223,7 +223,7 @@ export class HttpRequest {
 	/**
 	 * Shorthand for fetch().success()
 	 */
-	success(): Promise<number> {
+	success(): Promise<void> {
 		return this.fetch().success();
 	}
 
