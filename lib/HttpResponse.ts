@@ -8,8 +8,8 @@ export interface HttpResponse {
 	/** @return the status code, whether or not there was success */
 	status(): Promise<number>;
 
-	/** @return the status code if <400, otherwise throws HttpError */
-	success(): Promise<number>;
+	/** Throws HttpError if code is >= 400 */
+	success(): Promise<void>;
 
 	/** @return the json if success, throws HttpError otherwise */
 	json(): Promise<any>;
@@ -32,7 +32,7 @@ export class HttpResponseWrapper implements HttpResponse {
 		return this.promise.then(r => r.status());
 	}
 
-	async success(): Promise<number> {
+	async success(): Promise<void> {
 		return this.promise.then(r => r.success());
 	}
 

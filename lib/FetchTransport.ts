@@ -36,8 +36,8 @@ class FetchHttpResponse implements HttpResponse {
 		return this.response.then(r => r.status);
 	}
 
-	success(): Promise<number> {
-		return this.succeed().then(r => r.status());
+	success(): Promise<void> {
+		return this.succeed().then(() => {});
 	}
 
 	json(): Promise<any> {
