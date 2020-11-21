@@ -220,6 +220,13 @@ export class HttpRequest {
 		return new HttpResponseWrapper(this._postflight(response));
 	}
 
+	/**
+	 * Shorthand for fetch().json()
+	 */
+	json(): Promise<any> {
+		return this.fetch().json();
+	}
+
 	/** @return the fully formed URL, including any query string parameters, encoded properly */
 	toUrl(): string {
 		const query = new URLSearchParams();
