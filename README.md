@@ -45,7 +45,9 @@ const things4 = await HTTP
 
 Install from npm:
 
-TODO
+```
+$ npm install hattery
+```
 
 Some extra features:
 
