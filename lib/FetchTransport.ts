@@ -1,4 +1,3 @@
-import fetch from "isomorphic-fetch";
 import {HttpRequest} from "./HttpRequest";
 import {HttpError, HttpResponse, HttpTransport} from "./HttpResponse";
 

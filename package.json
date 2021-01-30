@@ -1,6 +1,6 @@
 {
   "name": "hattery",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Functional/immutable http interface",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -24,11 +24,9 @@
   "homepage": "https://github.com/stickfigure/hatteryjs#readme",
   "devDependencies": {
     "@types/chai": "^4.2.14",
-    "@types/isomorphic-fetch": "0.0.35",
     "@types/js-base64": "^3.0.0",
     "@types/mocha": "^8.2.0",
     "chai": "^4.2.0",
-    "isomorphic-fetch": "^3.0.0",
     "mocha": "^8.2.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
