@@ -8,7 +8,7 @@ export class FetchTransport implements HttpTransport {
 			headers: request.getHeaders(),
 		};
 
-		if (request.getBody() !== null) {
+		if (request.getBody() != null) {
 			init.body = JSON.stringify(request.getBody());
 		}
 

@@ -136,7 +136,7 @@ export class HttpRequest {
 	 * Calling this method repeatedly with the same key will replace the value. To specify repeated parameter values,
 	 * provide a string[] value. Providing a null value will clear the query key.
 	 */
-	param(key: string, value: string | string[] | null): HttpRequest {
+	param(key: string, value?: string | string[] | null): HttpRequest {
 		return new HttpRequest(this._transport, this._method, this._url, this._headers, concatParam(this._params, key, value), this._preflight, this._postflight, this._interceptor, this._body);
 	}
 
@@ -145,7 +145,7 @@ export class HttpRequest {
 	 * it does not replace *all* parameters. It is a shorthand for calling param() with each key/value.
 	 * @param values a set of key/values to replace in our set
 	 */
-	params(values: Record<string, string | string[] | null>): HttpRequest {
+	params(values: Record<string, string | string[] | null | undefined>): HttpRequest {
 		let here: HttpRequest = this;
 		for (const key of Object.keys(values)) {
 			here = here.param(key, values[key]);
@@ -290,8 +290,8 @@ function concatHeader(headers: Headers, key: string, value: string): Headers {
 	return obj;
 }
 
-function concatParam(params: Params, key: string, value: string | string[] | null): Params {
-	if (value === null) {
+function concatParam(params: Params, key: string, value?: string | string[] | null): Params {
+	if (value == null) {
 		const obj = {...params};
 		delete obj[key];
 		return obj;
