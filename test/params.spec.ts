@@ -47,4 +47,15 @@ describe('Parameter testing', () => {
 
 		expect(result.query).to.equal("");
 	});
+
+	it('puts parameters in body if POST', async () => {
+		const result = await SNOOP
+				.POST()
+				.param('foo', 'bar bar')
+				.fetch().json();
+
+		expect(result.headers['Content-Type']).to.satisfy((str: string) => str.startsWith("application/x-www-form-urlencoded"));
+		expect(result.query).to.equal("");
+		expect(result.body).to.equal("foo=bar+bar");
+	});
 });

@@ -226,6 +226,33 @@ export class HttpRequest {
 	}
 
 	/**
+	 * Figure out the actual content type, checking for a header first. If no header, guess
+	 * based on situation (eg, POST() with params means form).
+	 */
+	getContentType(): string | null {
+		const fromHeader = this._headers['Content-Type'] || this._headers['content-type'];
+		if (fromHeader != null) {
+			return fromHeader;
+		}
+
+		if (this._body != null) {
+			return "application/json";
+		}
+
+		if (this._method == 'POST') {
+			return "application/x-www-form-urlencoded; charset=utf-8";
+		}
+
+		return null;
+	}
+
+	/** Is this x-www-form-urlencoded */
+	isForm(): boolean {
+		const ct = this.getContentType();
+		return ct != null && ct.startsWith("application/x-www-form-urlencoded");
+	}
+
+	/**
 	 * Execute this request.
 	 */
 	fetch(): HttpResponse {
@@ -257,6 +284,22 @@ export class HttpRequest {
 
 	/** @return the fully formed URL, including any query string parameters, encoded properly */
 	toUrl(): string {
+		if (this.isForm()) {
+			return this._url;
+		} else {
+			const query = this.toSearchParams();
+
+			const queryString = query.toString();
+
+			if (queryString.length > 0) {
+				return this._url + '?' + queryString;
+			} else {
+				return this._url;
+			}
+		}
+	}
+
+	toSearchParams(): URLSearchParams {
 		const query = new URLSearchParams();
 		for (const key of Object.keys(this._params)) {
 			for (const value of this._params[key]) {
@@ -264,13 +307,7 @@ export class HttpRequest {
 			}
 		}
 
-		const queryString = query.toString();
-
-		if (queryString.length > 0) {
-			return this._url + '?' + queryString;
-		} else {
-			return this._url;
-		}
+		return query;
 	}
 }
 

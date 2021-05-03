@@ -11,6 +11,8 @@ export class FetchTransport implements HttpTransport {
 
 		if (request.getBody() != null) {
 			init.body = JSON.stringify(request.getBody());
+		} else if (request.isForm()) {
+			init.body = request.toSearchParams();
 		}
 
 		const response = fetch(request.toUrl(), init);
