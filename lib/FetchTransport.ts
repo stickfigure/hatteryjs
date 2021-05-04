@@ -1,6 +1,5 @@
 import {HttpRequest} from "./HttpRequest";
 import {HttpError, HttpResponse, HttpTransport} from "./HttpResponse";
-import fetch from 'cross-fetch';
 
 export class FetchTransport implements HttpTransport {
 	async fetch(request: HttpRequest): Promise<HttpResponse> {
