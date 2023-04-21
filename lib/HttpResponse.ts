@@ -11,23 +11,41 @@ export interface HttpResponse {
 	/** Throws HttpError if code is >= 400 */
 	success(): Promise<void>;
 
-	/** @return the json if success, throws HttpError otherwise */
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the json if success, throws HttpError otherwise
+	 */
 	json(): Promise<any>;
 
-	/** @return the json body whether or not there was success */
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the json body whether or not there was success
+	 */
 	jsonRaw(): Promise<any>;
 
-	/** @return the text if success, throws HttpError otherwise */
-	text(): Promise<string>;
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the text if success, throws HttpError otherwise
+	 */
+	text(): Promise<string | null>;
 
-	/** @return the text body whether or not there was success */
-	textRaw(): Promise<string>;
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the text body whether or not there was success
+	 */
+	textRaw(): Promise<string | null>;
 
-	/** @return the blob if success, throws HttpError otherwise */
-	blob(): Promise<Blob>;
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the blob if success, throws HttpError otherwise
+	 */
+	blob(): Promise<Blob | null>;
 
-	/** @return the blob body whether or not there was success */
-	blobRaw(): Promise<Blob>;
+	/**
+	 * 204 NO CONTENT will return null instead of a fetch error
+	 * @return the blob body whether or not there was success
+	 */
+	blobRaw(): Promise<Blob | null>;
 }
 
 export class HttpResponseWrapper implements HttpResponse {
@@ -50,19 +68,19 @@ export class HttpResponseWrapper implements HttpResponse {
 		return this.promise.then(r => r.jsonRaw());
 	}
 
-	async text(): Promise<string> {
+	async text(): Promise<string | null> {
 		return this.promise.then(r => r.text());
 	}
 
-	async textRaw(): Promise<string> {
+	async textRaw(): Promise<string | null> {
 		return this.promise.then(r => r.textRaw());
 	}
 
-	async blob(): Promise<Blob> {
+	async blob(): Promise<Blob | null> {
 		return this.promise.then(r => r.blob());
 	}
 
-	async blobRaw(): Promise<Blob> {
+	async blobRaw(): Promise<Blob | null> {
 		return this.promise.then(r => r.blobRaw());
 	}
 }

@@ -278,7 +278,7 @@ export class HttpRequest {
 	/**
 	 * Shorthand for fetch().text()
 	 */
-	text(): Promise<string> {
+	text(): Promise<string | null> {
 		return this.fetch().text();
 	}
 

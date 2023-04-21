@@ -46,22 +46,22 @@ class FetchHttpResponse implements HttpResponse {
 	}
 
 	jsonRaw(): Promise<any> {
-		return this.response.then(r => r.json());
+		return this.response.then(r => r.status == 204 ? null : r.json());
 	}
 
-	text(): Promise<string> {
+	text(): Promise<string | null> {
 		return this.succeed().then(r => r.textRaw());
 	}
 
-	textRaw(): Promise<string> {
-		return this.response.then(r => r.text());
+	textRaw(): Promise<string | null> {
+		return this.response.then(r => r.status == 204 ? null : r.text());
 	}
 
-	blob(): Promise<Blob> {
+	blob(): Promise<Blob | null> {
 		return this.succeed().then(r => r.blobRaw());
 	}
 
-	blobRaw(): Promise<Blob> {
-		return this.response.then(r => r.blob());
+	blobRaw(): Promise<Blob | null> {
+		return this.response.then(r => r.status == 204 ? null : r.blob());
 	}
 }
