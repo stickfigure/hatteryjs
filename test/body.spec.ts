@@ -9,6 +9,7 @@ describe('Body behavior', () => {
 				.body({foo: 'bar'})
 				.fetch().json();
 
-		expect(result.body).to.equal("{\"foo\":\"bar\"}");
+		expect(result.body).to.deep.equal({"foo":"bar"});
+		expect(result.headers["Content-Type"]).to.equal("application/json");
 	});
 });

@@ -5,7 +5,7 @@ export class FetchTransport implements HttpTransport {
 	async fetch(request: HttpRequest): Promise<HttpResponse> {
 		const init: RequestInit = {
 			method: request.getMethod(),
-			headers: request.getHeaders(),
+			headers: request.getEffectiveHeaders(),
 		};
 
 		if (request.getBody() != null) {

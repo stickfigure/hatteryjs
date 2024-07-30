@@ -246,6 +246,22 @@ export class HttpRequest {
 		return null;
 	}
 
+	/** Add any synthetic headers, ie Content-Type */
+	getEffectiveHeaders(): Headers {
+		const contentType = this.getContentType();
+
+		if (contentType) {
+			// Need to doublecheck because of casing issues
+			if (this._headers['Content-Type'] || this._headers['content-type']) {
+				return this.getHeaders();
+			} else {
+				return {...this._headers, 'Content-Type': contentType};
+			}
+		} else {
+			return this.getHeaders();
+		}
+	}
+
 	/** Is this x-www-form-urlencoded */
 	isForm(): boolean {
 		const ct = this.getContentType();
