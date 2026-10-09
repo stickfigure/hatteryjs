@@ -12,6 +12,8 @@
     "types": [],
     "rootDir": "./src",
     "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "outDir": "./dist",
     "strict": true,
     "noUncheckedIndexedAccess": true,
