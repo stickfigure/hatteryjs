@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import {createServer} from 'node:http';
 import {after, before, test} from 'node:test';
-import {HTTP, HttpError} from '../lib';
+import {HTTP, HttpError} from '../src';
 
 interface Echo {
 	method: string;

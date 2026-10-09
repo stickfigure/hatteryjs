@@ -241,6 +241,6 @@ npm test
 npm run typecheck
 ```
 
-Tests compile the library, public API type assertions, and package imports in Node-only and browser TypeScript projects, then use Node's test runner with isolated transports and a local HTTP server. They require no external services. `npm run build` produces the CommonJS package and declaration files under `dist/lib`.
+Tests compile the library, public API type assertions, and package imports in Node-only and browser TypeScript projects, then use Node's test runner with isolated transports and a local HTTP server. They require no external services. TypeScript source lives in `src/`; `npm run build` produces the CommonJS JavaScript and declaration files directly under `dist/`. The npm package includes these compiled files, so consumers do not need to compile TypeScript.
 
 `npm pack` builds the package before creating its tarball. `npm publish` runs the tests and builds the package before publishing; a failed check stops the release. `./publish.sh` delegates to the same npm lifecycle and forwards any arguments.

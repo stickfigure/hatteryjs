@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {setTimeout as delay} from 'node:timers/promises';
-import {HTTP} from '../lib';
+import {HTTP} from '../src';
 
 test('an already aborted request performs no hooks or network work', async () => {
 	const controller = new AbortController();

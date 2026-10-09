@@ -5,10 +5,11 @@
       "node"
     ],
     "declaration": false,
+    "rootDir": ".",
     "outDir": "./.test-dist"
   },
   "include": [
-    "lib/**/*.ts",
+    "src/**/*.ts",
     "test/**/*.ts"
   ],
   "exclude": [

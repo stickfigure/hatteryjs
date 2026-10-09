@@ -1,5 +1,5 @@
 // Compiled by npm test. These functions are never executed: they exercise the public declarations.
-import {HTTP, type HttpRequest, type HttpTransport, type FetchOptions} from '../lib';
+import {HTTP, type HttpRequest, type HttpTransport, type FetchOptions} from '../src';
 
 type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
 function expectType<T extends true>() {}
@@ -45,7 +45,7 @@ async function types(user: User, filters: Filters, headers: CustomHeaders) {
 	HTTP.params(filters).form(filters).headers(headers);
 	HTTP.params({tags: [1, 'two', true] as const, unset: undefined, removed: null});
 	HTTP.headers(new Headers()).params(new URLSearchParams()).form(new URLSearchParams());
-	HTTP.rawBody(new FormData()).rawBody(new Uint8Array([1])).rawBody(new Blob()).rawBody(null);
+	HTTP.rawBody(new FormData()).rawBody(new Uint8Array([1])).rawBody(new Blob([])).rawBody(null);
 	const transport: HttpTransport = fetch;
 	HTTP.transport(transport);
 	const options: FetchOptions = {credentials: 'include', redirect: 'manual'};
@@ -60,7 +60,7 @@ async function types(user: User, filters: Filters, headers: CustomHeaders) {
 	// @ts-expect-error Bulk parameters have the same restriction.
 	HTTP.params({filter: {name: 'Ada'}});
 	// @ts-expect-error Form fields must be serializable parameter values.
-	HTTP.form({file: new Blob()});
+	HTTP.form({file: new Blob([])});
 	// @ts-expect-error Header values are strings.
 	HTTP.headers({count: 4});
 	// @ts-expect-error JSON bodies cannot be undefined.

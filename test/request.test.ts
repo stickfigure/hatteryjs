@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {HTTP, HttpRequest, type FetchOptions} from '../lib';
+import {HTTP, HttpRequest, type FetchOptions} from '../src';
 
 test('templates remain independent across URL, method, parameters, and headers', () => {
 	const tags = ['one'];
