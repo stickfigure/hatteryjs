@@ -1,16 +1,7 @@
-import {FetchTransport} from "./FetchTransport";
-import {HttpRequest} from "./HttpRequest";
+import {HttpRequest} from './HttpRequest';
 
-export const HTTP = new HttpRequest(
-		new FetchTransport(),
-		'GET',
-		'',
-		{},
-		{},
-		req => req,
-		resp => resp,
-		(req, proceed) => proceed(req),
-		null);
-
+/** The immutable starting point for request chains. */
+export const HTTP = new HttpRequest();
 export {HttpRequest};
-export {HttpResponse, HttpError, HttpTransport} from "./HttpResponse";
+export {HttpError} from './HttpError';
+export type {AfterResponse, Awaitable, BeforeRequest, Decoder, FetchOptions, HeaderValues, HttpTransport, Interceptor, JsonInput, Next, Params, ParamScalar, ParamValue, RawBody} from './types';
