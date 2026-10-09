@@ -1,4 +1,4 @@
-import type {RawBody} from './types';
+import type {RawBody} from './types.js';
 
 // All byte views, including views over shared memory, are copied to ordinary buffers.
 type CopiedBody = Exclude<RawBody, ArrayBufferView>;

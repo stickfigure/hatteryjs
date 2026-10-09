@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {HTTP, HttpError} from '../src';
+import {HTTP, HttpError} from '../src/index.js';
 
 test('fetch returns a real promise of a native Response with status and headers', async () => {
 	const pending = HTTP.transport(async () => new Response('missing', {status: 404, headers: {'x-request-id': '123'}})).fetch();

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {HTTP} from '../src';
+import {HTTP} from '../src/index.js';
 
 function deferred<T>() {
 	let resolve!: (value: T) => void;

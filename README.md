@@ -6,7 +6,9 @@ Immutable, fluent HTTP requests for TypeScript. Build a base request once, deriv
 npm install hattery
 ```
 
-Requires Node.js 22+ or a modern browser with native fetch and `AbortSignal.any` (use a bundler for browsers). No runtime dependencies. TypeScript 5.4+ is required for the declarations; use `@types/node` 22+ for Node projects or DOM types for browser projects.
+Requires Node.js 22.13+ or a modern browser with native fetch and `AbortSignal.any` (use a bundler for browsers). No runtime dependencies. Published as ESM JavaScript with bundled declarations; consumers do not need to compile Hattery's TypeScript. TypeScript 5.8+ is supported; use `@types/node` 22+ for Node projects or DOM types for browser projects.
+
+For TypeScript projects, use `"module": "NodeNext"` for Node or `"moduleResolution": "Bundler"` with your browser bundler. Node ESM projects should also set `"type": "module"` in their own `package.json`. CommonJS applications on the supported Node versions can use `const {HTTP} = require('hattery')`; both loading styles use the same ESM implementation.
 
 ## Everyday requests
 
@@ -241,6 +243,6 @@ npm test
 npm run typecheck
 ```
 
-Tests compile the library, public API type assertions, and package imports in Node-only and browser TypeScript projects, then use Node's test runner with isolated transports and a local HTTP server. They require no external services. TypeScript source lives in `src/`; `npm run build` produces the CommonJS JavaScript and declaration files directly under `dist/`. The npm package includes these compiled files, so consumers do not need to compile TypeScript.
+Tests compile the library, public API type assertions, and package imports in Node-only and browser TypeScript projects, then use Node's test runner with isolated transports and a local HTTP server. They also verify that native `import` and `require()` load the same package implementation. They require no external services. TypeScript source lives in `src/`; `npm run build` produces ESM JavaScript and declaration files directly under `dist/`.
 
 `npm pack` builds the package before creating its tarball. `npm publish` runs the tests and builds the package before publishing; a failed check stops the release. `./publish.sh` delegates to the same npm lifecycle and forwards any arguments.

@@ -1,4 +1,4 @@
-import type {Awaitable} from './types';
+import type {Awaitable} from './types.js';
 
 /** Observe cancellation even when a custom transport or hook does not honor its signal. */
 export function abortable<T>(work: () => Awaitable<T>, signal?: AbortSignal): Promise<T> {

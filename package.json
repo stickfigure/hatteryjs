@@ -2,7 +2,7 @@
   "name": "hattery",
   "version": "0.1.0",
   "description": "Immutable, fluent HTTP requests with typed JSON and native fetch",
-  "type": "commonjs",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -43,6 +43,6 @@
   },
   "sideEffects": false,
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   }
 }

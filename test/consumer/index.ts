@@ -1,5 +1,5 @@
 // Resolve the built package through its exports, without importing library source.
-// Compiled both as a Node-only CommonJS consumer and as a browser bundler consumer.
+// Compiled both as a Node-only ESM consumer and as a browser bundler consumer.
 import {HTTP, HttpError, HttpRequest, type HttpTransport, type RawBody} from 'hattery';
 
 const bodies: RawBody[] = [

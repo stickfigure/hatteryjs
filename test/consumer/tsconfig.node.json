@@ -10,5 +10,5 @@
     "skipLibCheck": false,
     "noEmit": true
   },
-  "include": ["*.ts", "*.mts"]
+  "include": ["*.ts", "*.mts", "*.cts"]
 }

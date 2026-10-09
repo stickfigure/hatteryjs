@@ -1,4 +1,4 @@
-import type {ParamValue} from './types';
+import type {ParamValue} from './types.js';
 
 export function splitUrl(url: string) {
 	const hashIndex = url.indexOf('#');

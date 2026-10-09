@@ -1,4 +1,4 @@
-import type {HttpRequest} from './HttpRequest';
+import type {HttpRequest} from './HttpRequest.js';
 
 /** HTTP failure from a checked shortcut. The response body remains available to read. */
 export class HttpError extends Error {

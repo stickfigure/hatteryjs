@@ -1,4 +1,4 @@
-import type {HttpRequest} from './HttpRequest';
+import type {HttpRequest} from './HttpRequest.js';
 
 export type Awaitable<T> = T | PromiseLike<T>;
 export type ParamScalar = string | number | boolean;

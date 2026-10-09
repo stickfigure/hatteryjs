@@ -1,8 +1,8 @@
-import {HttpError} from './HttpError';
-import {jsonBody, rawBody, type Body} from './body';
-import {abortable, executionScope} from './execution';
-import {appendPath, paramEntries, paramStrings, splitUrl} from './url';
-import type {AfterResponse, BeforeRequest, Decoder, FetchOptions, HeaderValues, HttpTransport, Interceptor, JsonInput, Next, Params, ParamValue, RawBody} from './types';
+import {HttpError} from './HttpError.js';
+import {jsonBody, rawBody, type Body} from './body.js';
+import {abortable, executionScope} from './execution.js';
+import {appendPath, paramEntries, paramStrings, splitUrl} from './url.js';
+import type {AfterResponse, BeforeRequest, Decoder, FetchOptions, HeaderValues, HttpTransport, Interceptor, JsonInput, Next, Params, ParamValue, RawBody} from './types.js';
 
 interface State {
 	readonly url: string;
