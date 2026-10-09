@@ -15,7 +15,7 @@ export type JsonInput<T> =
 	T extends object ? {[K in keyof T]: JsonInput<T[K]> | (undefined extends T[K] ? undefined : never)} : never;
 
 /** Reusable native bodies. One-shot upload streams are deliberately excluded. */
-export type RawBody = Exclude<BodyInit, ReadableStream>;
+export type RawBody = string | Blob | FormData | URLSearchParams | ArrayBuffer | ArrayBufferView;
 export type FetchOptions = Omit<RequestInit, 'method' | 'headers' | 'body' | 'signal'> & {
 	readonly method?: never;
 	readonly headers?: never;

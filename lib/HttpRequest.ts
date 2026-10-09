@@ -211,8 +211,13 @@ export class HttpRequest {
 	text(): Promise<string> { return this.checked(response => response.text()); }
 	blob(): Promise<Blob> { return this.checked(response => response.blob()); }
 	arrayBuffer(): Promise<ArrayBuffer> { return this.checked(response => response.arrayBuffer()); }
-	/** Check success and release the unused response body. */
-	success(): Promise<void> { return this.checked(async response => { await response.body?.cancel(); }); }
+	/** Check success and request body cleanup without waiting for other response clones. */
+	success(): Promise<void> {
+		return this.checked(async response => {
+			// Cancellation can wait for another clone; cleanup failure does not change HTTP success.
+			void response.body?.cancel().catch(() => {});
+		});
+	}
 
 	private checked<T>(consume: (response: Response, request: HttpRequest) => Promise<T>): Promise<T> {
 		return this.execute((response, request) => {

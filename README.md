@@ -6,7 +6,7 @@ Immutable, fluent HTTP requests for TypeScript. Build a base request once, deriv
 npm install hattery
 ```
 
-Requires Node.js 22+ or a modern browser with native fetch and `AbortSignal.any` (use a bundler for browsers). No runtime dependencies. TypeScript 5.4+ with DOM types is required for the declarations.
+Requires Node.js 22+ or a modern browser with native fetch and `AbortSignal.any` (use a bundler for browsers). No runtime dependencies. TypeScript 5.4+ is required for the declarations; use `@types/node` 22+ for Node projects or DOM types for browser projects.
 
 ## Everyday requests
 
@@ -123,10 +123,12 @@ Changing the body replaces the old body and its inferred content type. An explic
 | `text()` | `string`, including `''` for an empty body | Requires 2xx |
 | `blob()` | `Blob` | Requires 2xx |
 | `arrayBuffer()` | `ArrayBuffer` | Requires 2xx |
-| `success()` | `void`; releases the unused body | Requires 2xx |
+| `success()` | `void`; requests cleanup of the unused body | Requires 2xx |
 | `fetch()` | Native `Response` | Caller decides |
 
 `json()` expects JSON: an empty or malformed body throws. `jsonOrNull()` handles HTTP responses that explicitly have no body; it still throws for malformed JSON or an unexpectedly empty 200 response. A literal JSON `null` is parsed normally; use a decoder if your endpoint must return a non-null value.
+
+`success()` cancels the unused response body without waiting for cleanup, which can depend on another reader of a cloned response. Cleanup failures are ignored; HTTP and network failures still reject normally.
 
 ```ts
 import {HttpError} from 'hattery';
@@ -239,6 +241,6 @@ npm test
 npm run typecheck
 ```
 
-Tests compile the library and public API type assertions, then use Node's test runner with isolated transports and a local HTTP server. They require no external services. `npm run build` produces the CommonJS package and declaration files under `dist/lib`.
+Tests compile the library, public API type assertions, and package imports in Node-only and browser TypeScript projects, then use Node's test runner with isolated transports and a local HTTP server. They require no external services. `npm run build` produces the CommonJS package and declaration files under `dist/lib`.
 
 `npm pack` builds the package before creating its tarball. `npm publish` runs the tests and builds the package before publishing; a failed check stops the release. `./publish.sh` delegates to the same npm lifecycle and forwards any arguments.

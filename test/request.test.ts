@@ -130,6 +130,21 @@ test('raw byte views preserve byte offsets and are copied on input and output', 
 	assert.deepEqual([...new Uint8Array(await new Response(request.toRequestInit().body).arrayBuffer())], [1, 2]);
 });
 
+test('raw shared byte views and DataViews are snapshotted as ordinary buffers', () => {
+	for (const buffer of [new ArrayBuffer(4), new SharedArrayBuffer(4)]) {
+		const bytes = new Uint8Array(buffer);
+		bytes.set([0, 1, 2, 3]);
+		for (const view of [bytes.subarray(1, 3), new DataView(buffer, 1, 2)]) {
+			const request = HTTP.POST().rawBody(view);
+			bytes[1] = 99;
+			const body = request.toRequestInit().body;
+			assert.ok(body instanceof ArrayBuffer);
+			assert.deepEqual([...new Uint8Array(body)], [1, 2]);
+			bytes[1] = 1;
+		}
+	}
+});
+
 test('FormData and URLSearchParams bodies are copied on input and each execution', async () => {
 	const source = new FormData();
 	source.set('name', 'Ada');

@@ -1,8 +1,11 @@
 import type {RawBody} from './types';
 
+// All byte views, including views over shared memory, are copied to ordinary buffers.
+type CopiedBody = Exclude<RawBody, ArrayBufferView>;
+
 export interface Body {
 	readonly contentType?: string | undefined;
-	create(): BodyInit;
+	create(): CopiedBody;
 }
 
 export function jsonBody(value: unknown): Body {
@@ -17,7 +20,7 @@ export function rawBody(value: RawBody, contentType?: string): Body {
 	return {contentType, create: () => copy(snapshot)};
 }
 
-function copy(value: RawBody): RawBody {
+function copy(value: RawBody): CopiedBody {
 	if (typeof value === 'string' || value instanceof Blob) return value;
 	if (value instanceof URLSearchParams) return new URLSearchParams(value);
 	if (value instanceof FormData) {

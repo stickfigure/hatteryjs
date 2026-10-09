@@ -66,7 +66,9 @@ test('all shortcuts check HTTP status and leave an error body available', async 
 
 test('network errors remain unchanged and checked binary shortcuts work', async () => {
 	const failure = new TypeError('connection failed');
-	await assert.rejects(HTTP.transport(async () => {throw failure;}).json(), error => error === failure);
+	const failed = HTTP.transport(async () => {throw failure;});
+	await assert.rejects(failed.json(), error => error === failure);
+	await assert.rejects(failed.success(), error => error === failure);
 	const request = HTTP.transport(async () => new Response(new Uint8Array([1, 2, 3])));
 	assert.deepEqual([...new Uint8Array(await request.arrayBuffer())], [1, 2, 3]);
 	assert.equal((await request.blob()).size, 3);
@@ -76,4 +78,46 @@ test('success cancels the unneeded body rather than downloading it', async () =>
 	let cancelled = false;
 	await HTTP.transport(async () => new Response(new ReadableStream({cancel() {cancelled = true;}}))).success();
 	assert.equal(cancelled, true);
+});
+
+test('success completes while another response clone is unread and leaves it usable', async () => {
+	const response = new Response('still readable');
+	const clone = response.clone();
+	try {
+		// A bounded request timeout also makes the previous cancellation deadlock fail promptly.
+		await HTTP.timeout(1000).transport(async () => clone).success();
+		assert.equal(clone.bodyUsed, true);
+		assert.equal(response.bodyUsed, false);
+		assert.equal(await response.text(), 'still readable');
+	} finally {
+		if (!response.bodyUsed) await response.body?.cancel();
+	}
+});
+
+test('success ignores body cleanup rejection', async () => {
+	let cancelled = false;
+	const response = new Response(new ReadableStream({
+		cancel() {
+			cancelled = true;
+			return Promise.reject(new Error('cleanup failed'));
+		},
+	}));
+	await HTTP.transport(async () => response).success();
+	assert.equal(cancelled, true);
+	// Let unhandled rejections surface to the test runner.
+	await new Promise<void>(resolve => setImmediate(resolve));
+});
+
+test('success leaves a body locked by another reader usable', async () => {
+	const response = new Response('reader owns this');
+	const reader = response.body!.getReader();
+	try {
+		await HTTP.transport(async () => response).success();
+		const {value, done} = await reader.read();
+		assert.equal(done, false);
+		assert.equal(new TextDecoder().decode(value), 'reader owns this');
+	} finally {
+		await reader.cancel();
+		reader.releaseLock();
+	}
 });
