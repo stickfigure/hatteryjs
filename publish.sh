@@ -1,2 +1,5 @@
-npm run-script build
-npm publish
+#!/bin/sh
+set -eu
+
+cd "$(dirname "$0")"
+exec npm publish "$@"
