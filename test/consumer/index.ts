@@ -1,6 +1,6 @@
 // Resolve the built package through its exports, without importing library source.
 // Compiled both as a Node-only ESM consumer and as a browser bundler consumer.
-import {HTTP, HttpError, HttpRequest, type HttpTransport, type RawBody} from 'hattery';
+import {HTTP, HttpError, HttpRequest, TransportError, type HttpTransport, type RawBody} from 'hattery';
 
 const bodies: RawBody[] = [
 	'hello',
@@ -22,6 +22,16 @@ const json: Promise<{id: number}> = base.json<{id: number}>();
 const checked: Promise<void> = base.success();
 const error = new HttpError(new Response(null, {status: 404}), base);
 const errorResponse: Response = error.response;
+const transportError = new TransportError(new TypeError('connection failed'), base);
+const transportCause: unknown = transportError.cause;
+const transportRequest: HttpRequest = transportError.request;
+const transportResponse: Response | undefined = transportError.response;
+const transportPhase: 'request' | 'body' = transportError.phase;
+const bodyError = new TransportError(new TypeError('body failed'), base, new Response());
+// @ts-expect-error A transport failure does not always have a response.
+const requiredResponse: Response = transportError.response;
+// @ts-expect-error Causes can be arbitrary thrown values.
+const requiredError: Error = transportError.cause;
 
 // @ts-expect-error One-shot streams are not reusable bodies in either environment.
 base.rawBody(new ReadableStream());

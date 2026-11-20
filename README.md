@@ -130,10 +130,10 @@ Changing the body replaces the old body and its inferred content type. An explic
 
 `json()` expects JSON: an empty or malformed body throws. `jsonOrNull()` handles HTTP responses that explicitly have no body; it still throws for malformed JSON or an unexpectedly empty 200 response. A literal JSON `null` is parsed normally; use a decoder if your endpoint must return a non-null value.
 
-`success()` cancels the unused response body without waiting for cleanup, which can depend on another reader of a cloned response. Cleanup failures are ignored; HTTP and network failures still reject normally.
+`success()` cancels the unused response body without waiting for cleanup, which can depend on another reader of a cloned response. Cleanup failures are ignored; HTTP and transport failures still reject normally.
 
 ```ts
-import {HttpError} from 'hattery';
+import {HttpError, TransportError} from 'hattery';
 
 try {
   await api.path('users').POST({name: 'Ada'}).json<User>();
@@ -141,13 +141,27 @@ try {
   if (error instanceof HttpError) {
     console.log(error.status, error.method, error.url);
     const details: unknown = await error.response.json();
+  } else if (error instanceof TransportError) {
+    console.log(error.phase, error.method, error.url, error.cause);
+    // The application decides whether to retry, show guidance, or report the error.
   } else {
     throw error;
   }
 }
 ```
 
-`HttpError` contains the native `response` and effective `request`, and leaves the error body unread. Network, cancellation, JSON parsing, and validation errors propagate unchanged. Checked shortcuts also reject unfollowed redirects; use `fetch()` when you want to inspect them.
+`HttpError` contains the native `response` and effective `request`, and leaves the error body unread. Checked shortcuts also reject unfollowed redirects; use `fetch()` when you want to inspect them.
+
+`TransportError` provides one error type for failures obtaining a response or reading its body through a shortcut. It preserves the original thrown value as `cause` (`unknown`) and includes the effective `request`, `method`, and `url`:
+
+| `phase` | Meaning | `response` |
+| --- | --- | --- |
+| `'request'` | The transport failed before returning a response | `undefined` |
+| `'body'` | `json()`, `jsonOrNull()`, `text()`, `blob()`, or `arrayBuffer()` failed while reading the body | Native `Response` |
+
+The type identifies where a failure occurred, not whether the user is offline or a retry is safe. Fetch can reject for connection failures, browser policies such as CORS, or invalid request options; body reads can also fail because of incorrect content encoding. Even a request-phase failure can occur after the server processed a request. Hattery leaves retry and reporting decisions to the application.
+
+Cancellation and timeouts preserve their original errors or signal reasons. The JSON shortcuts propagate `SyntaxError` from the native JSON reader, including one raised by a custom response stream. Decoder, hook, and interceptor errors propagate unchanged. A body already consumed or locked by another reader retains its native `TypeError`. HTTP status checking happens before body reading, so a non-2xx response produces `HttpError` even if its body is broken.
 
 ```ts
 const response = await api.path('users').fetch();
@@ -156,6 +170,8 @@ const body: unknown = await response.json();
 ```
 
 Native bodies are consumed once. Use `response.clone()` to inspect a body while leaving it available for another reader, or `response.body` for streaming. There is no custom response wrapper and no `jsonRaw()` method.
+
+`fetch()` normalizes failures obtaining the response into `TransportError`, but once it returns, you own body handling. Reads on that native response, on `HttpError.response`, or inside your hooks keep their native errors.
 
 ## Hooks and middleware
 
@@ -185,7 +201,9 @@ const timed = api.intercept(async (request, next) => {
 });
 ```
 
-Execution order is before hooks → interceptors → transport → interceptor unwinding → response hooks → checked shortcut/decoder. The first registered interceptor is outermost. `next(request)` waits for actual response headers and propagates network failures; HTTP error statuses remain inspectable responses at this layer. Shortcuts check status after response hooks. Calling `next()` again performs another attempt without rerunning before hooks. Hattery does not automatically retry requests.
+Execution order is before hooks → interceptors → transport → interceptor unwinding → response hooks → checked shortcut/decoder. The first registered interceptor is outermost. `next(request)` waits for actual response headers and rejects with `TransportError` for transport failures; HTTP error statuses remain inspectable responses at this layer. Shortcuts check status and read the body after response hooks, so interceptors do not catch shortcut body-read errors. Catch the terminal call to handle both phases. Calling `next()` again performs another attempt without rerunning before hooks. Hattery does not automatically retry requests.
+
+If an interceptor makes multiple attempts, response hooks and errors from HTTP status checking or body reading use the latest attempted request for context, even if the interceptor returns an earlier response.
 
 ## Cancellation, timeouts, and fetch options
 
@@ -213,6 +231,8 @@ const user = await fake.path('users').segment(1).json<User>();
 ```
 
 The function receives the final URL and fresh RequestInit and returns `Promise<Response>`. Native `fetch` is directly compatible. `getUrl()`, `getMethod()`, `getHeaders()`, `toUrl()`, `toSearchParams()`, and `toRequestInit()` support inspection without executing the request. `toRequestInit()` does not run hooks or start a timeout.
+
+Custom transport failures are normalized just like native fetch failures, including synchronous throws. Cancellation, timeout, and existing `HttpError` or `TransportError` objects are preserved. Keep application logic in hooks or decoders when its errors should propagate unchanged.
 
 ## Migrating from 0.0.x
 

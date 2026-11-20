@@ -1,4 +1,5 @@
 import {HttpError} from './HttpError.js';
+import {TransportError} from './TransportError.js';
 import {jsonBody, rawBody, type Body} from './body.js';
 import {abortable, executionScope} from './execution.js';
 import {appendPath, paramEntries, paramStrings, splitUrl} from './url.js';
@@ -191,8 +192,8 @@ export class HttpRequest {
 	json<T = unknown>(): Promise<T>;
 	json<T>(decoder: Decoder<T>): Promise<T>;
 	json<T>(decoder?: Decoder<T>): Promise<T> {
-		return this.checked(async response => {
-			const value: unknown = await response.json();
+		return this.checked(async (response, request) => {
+			const value: unknown = await request.readBody(response, () => response.json(), 'json');
 			return decode(value, decoder);
 		});
 	}
@@ -203,14 +204,14 @@ export class HttpRequest {
 	jsonOrNull<T>(decoder?: Decoder<T>): Promise<T | null> {
 		return this.checked(async (response, request) => {
 			if (response.status === 204 || response.status === 205 || request.getMethod() === 'HEAD') return null;
-			const value: unknown = await response.json();
+			const value: unknown = await request.readBody(response, () => response.json(), 'json');
 			return decode(value, decoder);
 		});
 	}
 
-	text(): Promise<string> { return this.checked(response => response.text()); }
-	blob(): Promise<Blob> { return this.checked(response => response.blob()); }
-	arrayBuffer(): Promise<ArrayBuffer> { return this.checked(response => response.arrayBuffer()); }
+	text(): Promise<string> { return this.checked((response, request) => request.readBody(response, () => response.text())); }
+	blob(): Promise<Blob> { return this.checked((response, request) => request.readBody(response, () => response.blob())); }
+	arrayBuffer(): Promise<ArrayBuffer> { return this.checked((response, request) => request.readBody(response, () => response.arrayBuffer())); }
 	/** Check success and request body cleanup without waiting for other response clones. */
 	success(): Promise<void> {
 		return this.checked(async response => {
@@ -226,6 +227,19 @@ export class HttpRequest {
 		});
 	}
 
+	private readBody<T>(response: Response, read: () => Promise<T>, format?: 'json'): Promise<T> {
+		return abortable(async () => {
+			// Let the native reader report known misuse, outside the transport error boundary.
+			if (response.bodyUsed || response.body?.locked) return read();
+			try {
+				return await read();
+			} catch (cause) {
+				if (format === 'json' && cause instanceof SyntaxError) throw cause;
+				throw transportFailure(cause, this, this.#state.signal, response);
+			}
+		}, this.#state.signal);
+	}
+
 	private async execute<T>(consume: (response: Response, request: HttpRequest) => Promise<T>): Promise<T> {
 		let request: HttpRequest = this;
 		for (const hook of this.#state.before) {
@@ -239,8 +253,17 @@ export class HttpRequest {
 				if (req.#state.body && (req.getMethod() === 'GET' || req.getMethod() === 'HEAD')) throw new TypeError('GET and HEAD requests cannot have a body; select POST(), PUT(), PATCH(), or another method.');
 				const init = req.toRequestInit();
 				if (scope.signal) init.signal = req.#state.signal && req.#state.signal !== scope.signal ? AbortSignal.any([scope.signal, req.#state.signal]) : scope.signal;
-				sentRequest = req.signal(init.signal ?? undefined);
-				return abortable(() => req.#state.transport(req.toUrl(), init), init.signal ?? undefined);
+				const signal = init.signal ?? undefined;
+				const effectiveRequest = req.signal(signal);
+				sentRequest = effectiveRequest;
+				const url = req.toUrl();
+				return abortable(async () => {
+					try {
+						return await req.#state.transport(url, init);
+					} catch (cause) {
+						throw transportFailure(cause, effectiveRequest, signal);
+					}
+				}, signal);
 			};
 			for (const interceptor of [...request.#state.interceptors].reverse()) {
 				const inner = next;
@@ -253,6 +276,14 @@ export class HttpRequest {
 			scope.dispose();
 		}
 	}
+}
+
+function transportFailure(cause: unknown, request: HttpRequest, signal: AbortSignal | undefined, response?: Response): unknown {
+	if (signal?.aborted) return signal.reason;
+	if (cause instanceof TransportError || cause instanceof HttpError) return cause;
+	// Transports may use their own signals, including DOMExceptions from another realm.
+	if (cause !== null && typeof cause === 'object' && 'name' in cause && (cause.name === 'AbortError' || cause.name === 'TimeoutError')) return cause;
+	return new TransportError(cause, request, response);
 }
 
 async function decode<T>(value: unknown, decoder?: Decoder<T>): Promise<T> {

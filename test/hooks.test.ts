@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {HTTP} from '../src/index.js';
+import {HTTP, TransportError} from '../src/index.js';
 
 function deferred<T>() {
 	let resolve!: (value: T) => void;
@@ -46,7 +46,9 @@ test('interceptors can catch asynchronous transport failures and retry with modi
 		return Response.json({ok: true});
 	}).intercept(async (req, next) => {
 		try {return await next(req);} catch (error) {
-			assert.equal(error, failure);
+			assert.ok(error instanceof TransportError);
+			assert.equal(error.cause, failure);
+			assert.equal(error.phase, 'request');
 			return next(req.header('x-retry', 'yes'));
 		}
 	});

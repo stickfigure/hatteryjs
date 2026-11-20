@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import {createServer} from 'node:http';
 import {after, before, test} from 'node:test';
-import {HTTP, HttpError} from '../src/index.js';
+import {HTTP, HttpError, TransportError} from '../src/index.js';
 
 interface Echo {
 	method: string;
@@ -12,6 +12,20 @@ interface Echo {
 }
 
 const server = createServer(async (request, response) => {
+	if (request.url === '/disconnect') {
+		response.destroy();
+		return;
+	}
+	if (request.url === '/truncated') {
+		response.writeHead(200, {'content-type': 'application/json', 'content-length': '100', connection: 'close'});
+		response.end('{"ok":');
+		return;
+	}
+	if (request.url === '/bad-encoding') {
+		response.writeHead(200, {'content-type': 'application/json', 'content-encoding': 'gzip'});
+		response.end('{"ok":true}');
+		return;
+	}
 	if (request.url === '/slow-headers') {
 		setTimeout(() => response.end('slow'), 200).unref();
 		return;
@@ -95,6 +109,33 @@ test('native response headers and redirect controls are available', async () => 
 test('native network timeouts cover both response headers and shortcut body reads', async () => {
 	await assert.rejects(HTTP.url(`${origin}/slow-headers`).timeout(30).fetch(), {name: 'TimeoutError'});
 	await assert.rejects(HTTP.url(`${origin}/slow-body`).timeout(30).json(), {name: 'TimeoutError'});
+});
+
+test('native connection failures before headers produce request-phase TransportError', async () => {
+	await assert.rejects(HTTP.url(`${origin}/disconnect`).fetch(), error => {
+		assert.ok(error instanceof TransportError);
+		assert.equal(error.phase, 'request');
+		assert.ok(error.cause instanceof TypeError);
+		assert.equal(error.url, `${origin}/disconnect`);
+		assert.equal(error.response, undefined);
+		return true;
+	});
+});
+
+test('native truncated and incorrectly encoded bodies produce body-phase TransportError', async () => {
+	for (const path of ['/truncated', '/bad-encoding']) {
+		const request = HTTP.url(`${origin}${path}`);
+		await assert.rejects(request.json(), error => {
+			assert.ok(error instanceof TransportError);
+			assert.equal(error.phase, 'body');
+			assert.ok(error.cause instanceof TypeError);
+			assert.equal(error.response?.status, 200);
+			assert.equal(error.url, `${origin}${path}`);
+			return true;
+		});
+		const response = await request.fetch();
+		await assert.rejects(response.json(), TypeError);
+	}
 });
 
 test('caller cancellation still reaches a native response body after fetch returns', async () => {

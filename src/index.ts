@@ -4,4 +4,5 @@ import {HttpRequest} from './HttpRequest.js';
 export const HTTP = new HttpRequest();
 export {HttpRequest};
 export {HttpError} from './HttpError.js';
+export {TransportError} from './TransportError.js';
 export type {AfterResponse, Awaitable, BeforeRequest, Decoder, FetchOptions, HeaderValues, HttpTransport, Interceptor, JsonInput, Next, Params, ParamScalar, ParamValue, RawBody} from './types.js';

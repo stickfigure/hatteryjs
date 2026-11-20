@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {HTTP, HttpError} from '../src/index.js';
+import {HTTP, HttpError, TransportError} from '../src/index.js';
 
 test('fetch returns a real promise of a native Response with status and headers', async () => {
 	const pending = HTTP.transport(async () => new Response('missing', {status: 404, headers: {'x-request-id': '123'}})).fetch();
@@ -64,11 +64,11 @@ test('all shortcuts check HTTP status and leave an error body available', async 
 	await assert.rejects(HTTP.transport(async () => new Response(null, {status: 302})).success(), HttpError);
 });
 
-test('network errors remain unchanged and checked binary shortcuts work', async () => {
+test('transport errors retain their cause and checked binary shortcuts work', async () => {
 	const failure = new TypeError('connection failed');
 	const failed = HTTP.transport(async () => {throw failure;});
-	await assert.rejects(failed.json(), error => error === failure);
-	await assert.rejects(failed.success(), error => error === failure);
+	await assert.rejects(failed.json(), error => error instanceof TransportError && error.cause === failure);
+	await assert.rejects(failed.success(), error => error instanceof TransportError && error.cause === failure);
 	const request = HTTP.transport(async () => new Response(new Uint8Array([1, 2, 3])));
 	assert.deepEqual([...new Uint8Array(await request.arrayBuffer())], [1, 2, 3]);
 	assert.equal((await request.blob()).size, 3);
