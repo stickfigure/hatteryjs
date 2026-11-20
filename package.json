@@ -1,6 +1,6 @@
 {
   "name": "hattery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Immutable, fluent HTTP requests with typed JSON and native fetch",
   "type": "module",
   "main": "dist/index.js",
@@ -34,7 +34,8 @@
   "files": [
     "dist",
     "src",
-    "README.md"
+    "README.md",
+    "CHANGES.md"
   ],
   "exports": {
     ".": {
